@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -15,113 +16,74 @@ import {
 } from "recharts";
 
 export default function Home() {
-  const trucks = [
-    {
-      polisi: "W 7723 AHB",
-      jenis: "Truk Kontainer",
-      pemilik: "Pancaran Darat",
-      rute: "Surabaya–Gresik",
-      kirTerakhir: "2025-04-10",
-      masaBerlaku: "2027-04-10",
-      sisaHari: 288,
-      status: "Valid",
-    },
-    {
-      polisi: "S 6614 XYZ",
-      jenis: "Truk Kontainer",
-      pemilik: "Pancaran Darat",
-      rute: "Blitar–Tulungagung",
-      kirTerakhir: "2025-01-08",
-      masaBerlaku: "2027-01-08",
-      sisaHari: 196,
-      status: "Valid",
-    },
-    {
-      polisi: "P 8812 KLM",
-      jenis: "Truk Kontainer",
-      pemilik: "Pancaran Darat",
-      rute: "Pasuruan–Probolinggo",
-      kirTerakhir: "2024-09-22",
-      masaBerlaku: "2026-07-22",
-      sisaHari: 26,
-      status: "Segera Habis",
-    },
-    {
-      polisi: "B 8821 TBF",
-      jenis: "Truk Kontainer",
-      pemilik: "Iron Bird",
-      rute: "Jakarta–Surabaya",
-      kirTerakhir: "2023-06-14",
-      masaBerlaku: "2026-06-30",
-      sisaHari: 4,
-      status: "Segera Habis",
-    },
-    {
-      polisi: "D 3302 MKL",
-      jenis: "Truk Kontainer",
-      pemilik: "Iron Bird",
-      rute: "Bandung–Semarang",
-      kirTerakhir: "2022-11-20",
-      masaBerlaku: "2023-11-20",
-      sisaHari: -949,
-      status: "Kadaluarsa",
-    },
-    {
-      polisi: "K 2278 BBA",
-      jenis: "Truk Kontainer",
-      pemilik: "Iron Bird",
-      rute: "Semarang–Yogyakarta",
-      kirTerakhir: "-",
-      masaBerlaku: "-",
-      sisaHari: "-",
-      status: "Belum KIR",
-    },
-  ];
+  const [trucks, setTrucks] = useState([]);
 
-  const circleChartData = [
-    { name: "Belum KIR", value: 3 },
-    { name: "Kadaluarsa", value: 5 },
-    { name: "Segera Habis", value: 2 },
-    { name: "Valid", value: 2 },
-  ];
+  // Call the API trucks route to fetch the data from Google Sheets
+  fetch("/api/trucks")
+    .then((res) => res.json())
+    .then((data) => setTrucks(data));
 
-  const barChartData = [
-    {
-      vendor: "IB (Iron Bird)",
-      belumKIR: 2,
-      kadaluarsa: 3,
-      segeraHabis: 1,
-      valid: 1,
+  const circleChartData = useMemo(
+    () => [
+      {
+        name: "Belum KIR",
+        value: trucks.filter((t) => t["Status"] === "Belum KIR").length,
+      },
+      {
+        name: "Kadaluarsa",
+        value: trucks.filter((t) => t["Status"] === "Kadaluarsa").length,
+      },
+      {
+        name: "Segera Habis",
+        value: trucks.filter((t) => t["Status"] === "Segera Habis").length,
+      },
+      {
+        name: "Valid",
+        value: trucks.filter((t) => t["Status"] === "Valid").length,
+      },
+    ],
+    [trucks],
+  );
+
+  const barChartData = useMemo(() => {
+    const vendors = [...new Set(trucks.map((t) => t["Pemilik"]))];
+    return vendors.map((vendor) => {
+      const vendorTrucks = trucks.filter((t) => t["Pemilik"] === vendor);
+      return {
+        vendor,
+        belumKIR: vendorTrucks.filter((t) => t["Status"] === "Belum KIR")
+          .length,
+        kadaluarsa: vendorTrucks.filter((t) => t["Status"] === "Kadaluarsa")
+          .length,
+        segeraHabis: vendorTrucks.filter((t) => t["Status"] === "Segera Habis")
+          .length,
+        valid: vendorTrucks.filter((t) => t["Status"] === "Valid").length,
+      };
+    });
+  }, [trucks]);
+
+  const renderLabel = useCallback(
+    ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+      const RADIAN = Math.PI / 180;
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={12}
+        >
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+      );
     },
-    { vendor: "PDT", belumKIR: 1, kadaluarsa: 2, segeraHabis: 1, valid: 1 },
-  ];
-
-  const renderLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={12}
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
+    [],
+  );
 
   const statusBadge = (status: string) => {
     if (status === "Valid")
@@ -130,6 +92,8 @@ export default function Home() {
       return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
     if (status === "Kadaluarsa")
       return "bg-red-500/20 text-red-400 border border-red-500/30";
+    if (status === "Belum KIR")
+      return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
     return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
   };
 
@@ -177,23 +141,28 @@ export default function Home() {
           <div className="bg-[#0d1117] rounded-xl p-4">
             <p className="text-sm text-gray-400">DISTRIBUSI STATUS KIR</p>
             <ResponsiveContainer width="100%" height={400}>
-            <PieChart width={500} height={400}>
-              <Pie
-                data={circleChartData}
-                innerRadius={80}
-                outerRadius={120}
-                dataKey="value"
-                label={renderLabel}
-                labelLine={false}
-                paddingAngle={3}
-              >
-                <Cell fill="#3B82F6" stroke="#0d1117" />
-                <Cell fill="#EF4444" stroke="#0d1117" />
-                <Cell fill="#F59E0B" stroke="#0d1117" />
-                <Cell fill="#22C55E" stroke="#0d1117" />
-              </Pie>
-              <Legend />
-            </PieChart>
+              <PieChart width={500} height={400}>
+                <Pie
+                  data={circleChartData}
+                  innerRadius={80}
+                  outerRadius={120}
+                  dataKey="value"
+                  label={renderLabel}
+                  labelLine={false}
+                  paddingAngle={3}
+                  isAnimationActive={false}
+                >
+                  <Cell fill="#3B82F6" stroke="#0d1117" />
+                  <Cell fill="#EF4444" stroke="#0d1117" />
+                  <Cell fill="#F59E0B" stroke="#0d1117" />
+                  <Cell fill="#22C55E" stroke="#0d1117" />
+                </Pie>
+                <Legend
+                  formatter={(value, entry) =>
+                    `${value} (${entry.payload.value})`
+                  }
+                />
+              </PieChart>
             </ResponsiveContainer>
           </div>
 
@@ -203,24 +172,23 @@ export default function Home() {
               STATUS KIR PER Vendor · TRUK KONTAINER
             </p>
             <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              width={1100}
-              height={400}
-              data={barChartData}
-              barCategoryGap="20%"
-              barGap={10}
-            >
-              <CartesianGrid stroke="#333" />
-              <XAxis dataKey="vendor" />
-              <YAxis allowDecimals={false} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="belumKIR" fill="#3B82F6" name="Belum KIR" />
-              <Bar dataKey="kadaluarsa" fill="#EF4444" name="Kadaluarsa" />
-              <Bar dataKey="segeraHabis" fill="#F59E0B" name="Segera Habis" />
-              <Bar dataKey="valid" fill="#22C55E" name="Valid" />
-              <Legend />
-            </BarChart>
+              <BarChart
+                width={1100}
+                height={400}
+                data={barChartData}
+                barCategoryGap="20%"
+                barGap={10}
+              >
+                <CartesianGrid stroke="#333" />
+                <XAxis dataKey="vendor" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="belumKIR" fill="#3B82F6" name="Belum KIR" />
+                <Bar dataKey="kadaluarsa" fill="#EF4444" name="Kadaluarsa" />
+                <Bar dataKey="segeraHabis" fill="#F59E0B" name="Segera Habis" />
+                <Bar dataKey="valid" fill="#22C55E" name="Valid" />
+                <Legend />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -247,18 +215,30 @@ export default function Home() {
                 key={i}
                 className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
               >
-                <td className="px-4 py-3 font-medium">{t.polisi}</td>
-                <td className="px-4 py-3 text-gray-300">{t.jenis}</td>
-                <td className="px-4 py-3 text-gray-300">{t.pemilik}</td>
-                <td className="px-4 py-3 text-gray-300">{t.rute}</td>
-                <td className="px-4 py-3 text-gray-300">{t.kirTerakhir}</td>
-                <td className="px-4 py-3 text-gray-300">{t.masaBerlaku}</td>
-                <td className="px-4 py-3 text-gray-300">{t.sisaHari}</td>
+                <td className="px-4 py-3 font-medium">
+                  {t["No. Polisi"] || "-"}
+                </td>
+                <td className="px-4 py-3 text-gray-300">
+                  {t["Jenis Truk"] || "-"}
+                </td>
+                <td className="px-4 py-3 text-gray-300">
+                  {t["Pemilik"] || "-"}
+                </td>
+                <td className="px-4 py-3 text-gray-300">{t["Rute"] || "-"}</td>
+                <td className="px-4 py-3 text-gray-300">
+                  {t["KIR Terakhir"] || "-"}
+                </td>
+                <td className="px-4 py-3 text-gray-300">
+                  {t["Masa Berlaku"] || "-"}
+                </td>
+                <td className="px-4 py-3 text-gray-300">
+                  {t["Sisa Hari"] || "-"}
+                </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium ${statusBadge(t.status)}`}
+                    className={`px-2 py-1 rounded-md text-xs font-medium ${statusBadge(t["Status"])}`}
                   >
-                    {t.status}
+                    {t["Status"]}
                   </span>
                 </td>
               </tr>
