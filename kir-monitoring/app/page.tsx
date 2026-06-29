@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
+  Truck,
 } from "lucide-react";
 
 export default function Home() {
@@ -143,11 +144,22 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Monitoring KIR Armada Truk</h1>
-        <p className="text-gray-400 text-sm mt-1">
-          Periode: Jan–Jun 2025 · Total Armada: {trucks.length} Unit
-        </p>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <Truck className="w-8 h-8 text-yellow-400" />
+          <div>
+            <h1 className="text-md font-bold">Monitoring KIR Armada Truk</h1>
+            <p className="text-gray-400 text-sm mt-1">
+              Periode: Jan–Jun 2025 · Total Armada: {trucks.length} Unit
+            </p>
+          </div>
+        </div>
+
+        <span className="flex items-center gap-2 bg-red-900 text-red-400 border border-red-700 px-3 py-1.5 rounded-lg text-sm">
+          <AlertTriangle className="w-4 h-4" />
+          {circleChartData[0].value + circleChartData[1].value} Unit Tidak Patuh
+          KIR
+        </span>
       </div>
 
       {/* Card Data */}
@@ -457,6 +469,21 @@ export default function Home() {
             ))}
           </tbody>
         </table>
+        <div className="flex justify-between items-center px-4 py-3 border-t border-gray-800 text-sm text-gray-400">
+          <span>© 2026 Boby Maulana — CIKARANG DRY PORT</span>
+          <span>
+            Diperbarui:{" "}
+            {new Date().toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              timeZone: "Asia/Jakarta",
+            })}{" "}
+            WIB
+          </span>
+        </div>
       </div>
     </main>
   );
