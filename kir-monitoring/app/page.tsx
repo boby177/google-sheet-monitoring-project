@@ -14,9 +14,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Search } from "lucide-react";
 
 export default function Home() {
   const [trucks, setTrucks] = useState([]);
+
+  const [sortKey, setSortKey] = useState("");
+  const [sortDir, setSortDir] = useState("asc");
+  const [search, setSearch] = useState("");
 
   // Call the API trucks route to fetch the data from Google Sheets
   fetch("/api/trucks")
@@ -62,6 +67,33 @@ export default function Home() {
     });
   }, [trucks]);
 
+  // Sorting data on the table
+  const sortedTrucks = useMemo(() => {
+    if (!sortKey) return trucks;
+    return [...trucks].sort((a, b) => {
+      if (a[sortKey] < b[sortKey]) return sortDir === "asc" ? -1 : 1;
+      if (a[sortKey] > b[sortKey]) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [trucks, sortKey, sortDir]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const filteredTrucks = useMemo(() => {
+    if (!search) return sortedTrucks;
+    return sortedTrucks.filter((t) =>
+      Object.values(t).some((val) =>
+        String(val).toLowerCase().includes(search.toLowerCase()),
+      ),
+    );
+  }, [sortedTrucks, search]);
+
   const renderLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
       const RADIAN = Math.PI / 180;
@@ -96,6 +128,8 @@ export default function Home() {
       return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
     return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
   };
+
+  console.log(trucks[0]);
 
   return (
     <main className="min-h-screen bg-gray-950 text-white p-8">
@@ -196,21 +230,144 @@ export default function Home() {
 
       {/* Table Data */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+        <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800">
+          <p className="text-xs text-gray-400 uppercase tracking-wider">
+            Data Armada · {filteredTrucks.length} Unit
+          </p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari No. Pol, pemilik..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-gray-800 text-sm text-white pl-9 pr-3 py-1.5 rounded-lg border border-gray-700 focus:outline-none focus:border-yellow-500 w-64"
+            />
+          </div>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-800 text-gray-400 uppercase text-xs tracking-wider">
-              <th className="px-4 py-3 text-left">No. Polisi</th>
-              <th className="px-4 py-3 text-left">Jenis Truk</th>
-              <th className="px-4 py-3 text-left">Pemilik</th>
-              <th className="px-4 py-3 text-left">Rute</th>
-              <th className="px-4 py-3 text-left">KIR Terakhir</th>
-              <th className="px-4 py-3 text-left">Masa Berlaku</th>
-              <th className="px-4 py-3 text-left">Sisa Hari</th>
-              <th className="px-4 py-3 text-left">Status</th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("No. Polisi")}
+              >
+                <span className="flex items-center gap-1">
+                  No. Polisi
+                  <span className="text-grey-500">
+                    {sortKey === "No. Polisi"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Jenis Truk")}
+              >
+                <span className="flex items-center gap-1">
+                  Jenis Truk
+                  <span className="text-grey-500">
+                    {sortKey === "Jenis Truk"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Pemilik")}
+              >
+                <span className="flex items-center gap-1">
+                  Pemilik
+                  <span className="text-grey-500">
+                    {sortKey === "Pemilik"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Rute")}
+              >
+                <span className="flex items-center gap-1">
+                  Rute
+                  <span className="text-grey-500">
+                    {sortKey === "Rute" ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("KIR Terakhir")}
+              >
+                <span className="flex items-center gap-1">
+                  KIR Terakhir
+                  <span className="text-grey-500">
+                    {sortKey === "KIR Terakhir"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Masa Berlaku")}
+              >
+                <span className="flex items-center gap-1">
+                  Masa Berlaku
+                  <span className="text-grey-500">
+                    {sortKey === "Masa Berlaku"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Sisa Hari")}
+              >
+                <span className="flex items-center gap-1">
+                  Sisa Hari
+                  <span className="text-grey-500">
+                    {sortKey === "Sisa Hari"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
+              <th
+                className="px-4 py-3 text-left cursor-pointer"
+                onClick={() => handleSort("Status")}
+              >
+                <span className="flex items-center gap-1">
+                  Status
+                  <span className="text-grey-500">
+                    {sortKey === "Status"
+                      ? sortDir === "asc"
+                        ? "↑"
+                        : "↓"
+                      : "↕"}
+                  </span>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {trucks.map((t, i) => (
+            {filteredTrucks.map((t, i) => (
               <tr
                 key={i}
                 className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
