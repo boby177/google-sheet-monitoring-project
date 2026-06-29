@@ -1,6 +1,18 @@
 "use client";
 
-import { PieChart, Pie, Cell, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Home() {
   const trucks = [
@@ -71,6 +83,17 @@ export default function Home() {
     { name: "Kadaluarsa", value: 5 },
     { name: "Segera Habis", value: 2 },
     { name: "Valid", value: 2 },
+  ];
+
+  const barChartData = [
+    {
+      vendor: "IB (Iron Bird)",
+      belumKIR: 2,
+      kadaluarsa: 3,
+      segeraHabis: 1,
+      valid: 1,
+    },
+    { vendor: "PDT", belumKIR: 1, kadaluarsa: 2, segeraHabis: 1, valid: 1 },
   ];
 
   const renderLabel = ({
@@ -148,11 +171,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Pie Chart Data */}
       <div className="mb-6">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-[1fr_2fr] gap-4">
+          {/* Pie Chart Data */}
           <div className="bg-[#0d1117] rounded-xl p-4">
             <p className="text-sm text-gray-400">DISTRIBUSI STATUS KIR</p>
+            <ResponsiveContainer width="100%" height={400}>
             <PieChart width={500} height={400}>
               <Pie
                 data={circleChartData}
@@ -170,6 +194,34 @@ export default function Home() {
               </Pie>
               <Legend />
             </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Bar Chart Data */}
+          <div className="bg-[#0d1117] rounded-xl p-4">
+            <p className="text-sm text-gray-400">
+              STATUS KIR PER Vendor · TRUK KONTAINER
+            </p>
+            <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              width={1100}
+              height={400}
+              data={barChartData}
+              barCategoryGap="20%"
+              barGap={10}
+            >
+              <CartesianGrid stroke="#333" />
+              <XAxis dataKey="vendor" />
+              <YAxis allowDecimals={false} />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="belumKIR" fill="#3B82F6" name="Belum KIR" />
+              <Bar dataKey="kadaluarsa" fill="#EF4444" name="Kadaluarsa" />
+              <Bar dataKey="segeraHabis" fill="#F59E0B" name="Segera Habis" />
+              <Bar dataKey="valid" fill="#22C55E" name="Valid" />
+              <Legend />
+            </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
