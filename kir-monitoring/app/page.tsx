@@ -1,3 +1,7 @@
+"use client";
+
+import { PieChart, Pie, Cell, Legend } from "recharts";
+
 export default function Home() {
   const trucks = [
     {
@@ -62,6 +66,40 @@ export default function Home() {
     },
   ];
 
+  const circleChartData = [
+    { name: "Belum KIR", value: 3 },
+    { name: "Kadaluarsa", value: 5 },
+    { name: "Segera Habis", value: 2 },
+    { name: "Valid", value: 2 },
+  ];
+
+  const renderLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+  }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={12}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   const statusBadge = (status: string) => {
     if (status === "Valid")
       return "bg-green-500/20 text-green-400 border border-green-500/30";
@@ -81,6 +119,7 @@ export default function Home() {
         </p>
       </div>
 
+      {/* Card Data */}
       <div className="mb-6">
         <div className="grid grid-cols-4 gap-4">
           <div className="bg-[#1B2A4A] rounded-xl p-4 border border-[#2E4A7A]">
@@ -108,6 +147,34 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Pie Chart Data */}
+      <div className="mb-6">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-[#0d1117] rounded-xl p-4">
+            <p className="text-sm text-gray-400">DISTRIBUSI STATUS KIR</p>
+            <PieChart width={500} height={400}>
+              <Pie
+                data={circleChartData}
+                innerRadius={80}
+                outerRadius={120}
+                dataKey="value"
+                label={renderLabel}
+                labelLine={false}
+                paddingAngle={3}
+              >
+                <Cell fill="#3B82F6" stroke="#0d1117" />
+                <Cell fill="#EF4444" stroke="#0d1117" />
+                <Cell fill="#F59E0B" stroke="#0d1117" />
+                <Cell fill="#22C55E" stroke="#0d1117" />
+              </Pie>
+              <Legend />
+            </PieChart>
+          </div>
+        </div>
+      </div>
+
+      {/* Table Data */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
