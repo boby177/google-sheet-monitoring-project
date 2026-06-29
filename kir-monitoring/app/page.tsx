@@ -14,14 +14,22 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Search } from "lucide-react";
+import {
+  Search,
+  XCircle,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
 
 export default function Home() {
   const [trucks, setTrucks] = useState([]);
 
   const [sortKey, setSortKey] = useState("");
-  const [sortDir, setSortDir] = useState("asc");
   const [search, setSearch] = useState("");
+
+  const [sortDir, setSortDir] = useState("asc");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // Call the API trucks route to fetch the data from Google Sheets
   fetch("/api/trucks")
@@ -86,13 +94,17 @@ export default function Home() {
   };
 
   const filteredTrucks = useMemo(() => {
-    if (!search) return sortedTrucks;
-    return sortedTrucks.filter((t) =>
-      Object.values(t).some((val) =>
-        String(val).toLowerCase().includes(search.toLowerCase()),
-      ),
-    );
-  }, [sortedTrucks, search]);
+    let result = sortedTrucks;
+    if (statusFilter)
+      result = result.filter((t) => t["Status"] === statusFilter);
+    if (search)
+      result = result.filter((t) =>
+        Object.values(t).some((val) =>
+          String(val).toLowerCase().includes(search.toLowerCase()),
+        ),
+      );
+    return result;
+  }, [sortedTrucks, search, statusFilter]);
 
   const renderLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -129,8 +141,6 @@ export default function Home() {
     return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
   };
 
-  console.log(trucks[0]);
-
   return (
     <main className="min-h-screen bg-gray-950 text-white p-8">
       <div className="mb-6">
@@ -143,28 +153,66 @@ export default function Home() {
       {/* Card Data */}
       <div className="mb-6">
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-[#1B2A4A] rounded-xl p-4 border border-[#2E4A7A]">
-            <p className="text-sm text-[#5B9BD5]">Belum KIR</p>
-            <p className="text-3xl font-bold text-[#5B9BD5]">3</p>
-            <p className="text-sm text-[#5B9BD5]">Unit</p>
+          <div
+            className="bg-[#1B2A4A] rounded-xl p-4 border border-[#2E4A7A] cursor-pointer"
+            onClick={() =>
+              setStatusFilter(statusFilter === "Belum KIR" ? "" : "Belum KIR")
+            }
+          >
+            <p className="text-sm text-[#5B9BD5] flex items-center gap-2">
+              <XCircle className="w-4 h-4" /> Belum KIR
+            </p>
+            <p className="text-3xl font-bold text-[#5B9BD5]">
+              {circleChartData[0].value}
+            </p>
+            <p className="text-sm text-[#5B9BD5]">unit</p>
           </div>
 
-          <div className="bg-[#4A1B1B] rounded-xl p-4 border border-[#7A2E2E]">
-            <p className="text-sm text-[#D55B5B]">Kadaluarsa</p>
-            <p className="text-3xl font-bold text-[#D55B5B]">5</p>
-            <p className="text-sm text-[#D55B5B]">Unit</p>
+          <div
+            className="bg-[#4A1B1B] rounded-xl p-4 border border-[#7A2E2E] cursor-pointer"
+            onClick={() =>
+              setStatusFilter(statusFilter === "Kadaluarsa" ? "" : "Kadaluarsa")
+            }
+          >
+            <p className="text-sm text-[#D55B5B] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Kadaluarsa
+            </p>
+            <p className="text-3xl font-bold text-[#D55B5B]">
+              {circleChartData[1].value}
+            </p>
+            <p className="text-sm text-[#D55B5B]">unit</p>
           </div>
 
-          <div className="bg-[#4A3B1B] rounded-xl p-4 border border-[#7A5E2E]">
-            <p className="text-sm text-[#D5A55B]">Segera Habis</p>
-            <p className="text-3xl font-bold text-[#D5A55B]">3</p>
-            <p className="text-sm text-[#D5A55B]">Unit</p>
+          <div
+            className="bg-[#4A3B1B] rounded-xl p-4 border border-[#7A5E2E] cursor-pointer"
+            onClick={() =>
+              setStatusFilter(
+                statusFilter === "Segera Habis" ? "" : "Segera Habis",
+              )
+            }
+          >
+            <p className="text-sm text-[#D5A55B] flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Segera Habis
+            </p>
+            <p className="text-3xl font-bold text-[#D5A55B]">
+              {circleChartData[2].value}
+            </p>
+            <p className="text-sm text-[#D5A55B]">unit</p>
           </div>
 
-          <div className="bg-[#1B4A2A] rounded-xl p-4 border border-[#2E7A4A]">
-            <p className="text-sm text-[#5BD57A]">Valid</p>
-            <p className="text-3xl font-bold text-[#5BD57A]">5</p>
-            <p className="text-sm text-[#5BD57A]">Unit</p>
+          <div
+            className="bg-[#1B4A2A] rounded-xl p-4 border border-[#2E7A4A] cursor-pointer"
+            onClick={() =>
+              setStatusFilter(statusFilter === "Valid" ? "" : "Valid")
+            }
+          >
+            <p className="text-sm text-[#5BD57A] flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" /> Valid
+            </p>
+            <p className="text-3xl font-bold text-[#5BD57A]">
+              {circleChartData[3].value}
+            </p>
+            <p className="text-sm text-[#5BD57A]">unit</p>
           </div>
         </div>
       </div>
@@ -172,8 +220,12 @@ export default function Home() {
       <div className="mb-6">
         <div className="grid grid-cols-[1fr_2fr] gap-4">
           {/* Pie Chart Data */}
-          <div className="bg-[#0d1117] rounded-xl p-4">
-            <p className="text-sm text-gray-400">DISTRIBUSI STATUS KIR</p>
+          <div className="bg-gray-900 rounded-xl p-4">
+            <div className="border-b border-gray-800 pb-3 mb-4">
+              <p className="text-xs text-gray-400 uppercase tracking-widest">
+                Distribusi Status KIR
+              </p>
+            </div>
             <ResponsiveContainer width="100%" height={400}>
               <PieChart width={500} height={400}>
                 <Pie
@@ -201,10 +253,13 @@ export default function Home() {
           </div>
 
           {/* Bar Chart Data */}
-          <div className="bg-[#0d1117] rounded-xl p-4">
-            <p className="text-sm text-gray-400">
-              STATUS KIR PER Vendor · TRUK KONTAINER
-            </p>
+          <div className="bg-gray-900 rounded-xl p-4">
+            <div className="border-b border-gray-800 pb-3 mb-4">
+              <p className="text-xs text-gray-400 uppercase tracking-widest">
+                {" "}
+                STATUS KIR PER Vendor · TRUK KONTAINER
+              </p>
+            </div>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
                 width={1100}
